@@ -1,0 +1,10 @@
+[
+  {
+    "stationLink": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=teatime.fm",
+    "stationName": "teatime"
+  },
+  {
+    "stationLink": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=coretime.fm",
+    "stationName": "coretime"
+  }
+]
