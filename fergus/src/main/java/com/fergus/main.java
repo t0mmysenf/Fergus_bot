@@ -82,7 +82,7 @@ public class main {
 
                 try{
                     //Check if track exists already by hash
-                    Connection conn = DriverManager.getConnection(conUrl, "fergusbot", "gpomkepr3G409mfgjpjAr485Ggmpj30tu");
+                    Connection conn = DriverManager.getConnection(conUrl, prop.getProperty("DB_USER"), prop.getProperty("DB_PASSWORD"));
                     PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS COUNT FROM SONG WHERE HASH = ?");
                     ps.setString(1, hash);
                     ResultSet rs = ps.executeQuery();
