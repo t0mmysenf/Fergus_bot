@@ -102,7 +102,6 @@ public class main {
 
                 try{
                     //Check if track exists already by hash
-
                     PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS COUNT FROM SONG WHERE HASH = ?");
                     ps.setString(1, hash);
                     ResultSet rs = ps.executeQuery();
