@@ -17,13 +17,13 @@ public class main {
 
         //Load Properties
         Properties prop = new Properties();
-        JSONArray stations = new JSONArray();
+        JSONArray stations;
         try {
             prop.load(ClassLoader.getSystemResourceAsStream("conf.properties"));
             InputStream stationStream = ClassLoader.getSystemResourceAsStream("stations.json");
             BufferedReader r = new BufferedReader(new InputStreamReader(stationStream));
             String line;
-            String stationsJson ="";
+            String stationsJson = "";
             while((line = r.readLine()) != null) {
                 stationsJson = stationsJson + line;
             }
@@ -33,11 +33,24 @@ public class main {
             System.out.println("Failed to get properties or stations");
             return;
         }
+
         String clientId = prop.getProperty("SPOTIFY_CLIENT_ID");
         String clientSecret = prop.getProperty("SPOTIFY_CLIENT_SECRET");
         String conUrl = prop.getProperty("DB_URL");
         Integer interval = Integer.parseInt(prop.getProperty("BOT_INTERVAL"));
+        String dbPassword = prop.getProperty("DB_PASSWORD");
+        String dbUser = prop.getProperty("DB_USER");
+        Connection conn;
 
+        try{
+            conn = DriverManager.getConnection(conUrl, dbUser, dbPassword);
+        }catch (Exception e){
+            System.out.println("Failed to establish connection to DB");
+            conn = null;
+            System.exit(1);
+        }
+
+        System.out.println("System configured, bot is starting...");
         URL url;
         HttpURLConnection con;
         while(true) {
@@ -51,6 +64,7 @@ public class main {
                 //Get song data
                 String response = "";
                 try{
+                    System.out.println("Sending request");
                     url = new URL(radioLink);
                     con = (HttpURLConnection)url.openConnection();
                     BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -61,17 +75,23 @@ public class main {
                         responseBuffer.append(inputLine);
                     }
                     in.close();
-                    System.out.println(response);
                     response = responseBuffer.toString();
+                    System.out.println("Got response: " + response);
                 }catch (Exception e){
                     System.out.println("Failed to get song data from radio");
                     System.out.println(e.getMessage());
                 }
-                if(response.isEmpty()) continue;
+                if(response.isEmpty()) {
+                    System.out.println("Response was empty");
+                    continue;
+                }
 
                 //Parse Json
                 JSONObject songJson = new JSONObject(response);
-                if(!songJson.getBoolean("success")) continue;
+                if(!songJson.getBoolean("success")){
+                    System.out.println("No success from radio side");
+                    continue;
+                }
 
                 String songTitle = songJson.getJSONObject("data").getString("title");
                 String songArtist = songJson.getJSONObject("data").getString("artist");
@@ -82,7 +102,7 @@ public class main {
 
                 try{
                     //Check if track exists already by hash
-                    Connection conn = DriverManager.getConnection(conUrl, "fergusbot", "gpomkepr3G409mfgjpjAr485Ggmpj30tu");
+
                     PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS COUNT FROM SONG WHERE HASH = ?");
                     ps.setString(1, hash);
                     ResultSet rs = ps.executeQuery();
@@ -91,7 +111,10 @@ public class main {
                     while (rs.next()) {
                         if(rs.getLong(1) > 0) skip = true;
                     }
-                    if(skip) continue;
+                    if(skip){
+                        System.out.println("Song already in database");
+                        continue;
+                    }
 
                     //Insert song
                     PreparedStatement psInsert = conn.prepareStatement("INSERT INTO SONG (TITLE, ARTIST, REMIX, HASH, RADIONAME) VALUES (?,?,?,?,?)");
@@ -101,6 +124,7 @@ public class main {
                     psInsert.setString(4,hash);
                     psInsert.setString(5,radioName);
                     psInsert.executeUpdate();
+                    System.out.println("Inserted Song" + songTitle + " by " + songArtist);
                 } catch (Exception e) {
                     System.out.println("Insert Failed for song: " + songTitle + "/" + songArtist);
                     System.out.println(e.getMessage());
