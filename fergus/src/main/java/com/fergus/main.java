@@ -86,16 +86,9 @@ public class main {
                     continue;
                 }
 
-                //Parse Json
-                JSONObject songJson = new JSONObject(response);
-                if(!songJson.getBoolean("success")){
-                    System.out.println("No success from radio side");
-                    continue;
-                }
-
-                String songTitle = songJson.getJSONObject("data").getString("title");
-                String songArtist = songJson.getJSONObject("data").getString("artist");
-                String songRemix = songJson.getJSONObject("data").getString("remix");
+                String songTitle = (String)getValueFromJson(station.getString("titleExpr"), response);
+                String songArtist = (String)getValueFromJson(station.getString("artistExpr"), response);
+                String songRemix = (String)getValueFromJson(station.getString("remixExpr"), response);
                 String hash = Hashing.sha256()
                         .hashString(songTitle + songArtist + songRemix, StandardCharsets.UTF_8)
                         .toString();
@@ -130,5 +123,36 @@ public class main {
                 }
             }
         }
+    }
+
+    private static Object getValueFromJson(String expression, String jsonRoot) {
+        JSONObject objJson = new JSONObject(jsonRoot);
+        String[] directions = expression.split(";");
+        if(expression.isEmpty()) {
+            return null;
+        }
+        for (String dir : directions) {
+            String[] splitDir = dir.split(":>");
+            Integer index = 0;
+            String jsonKey = splitDir[0];
+            String type = splitDir[1];
+            if (splitDir.length == 3) {
+                index = Integer.parseInt(splitDir[2]);
+            }
+            switch (type){
+                case "o":
+                    objJson = objJson.getJSONObject(jsonKey);
+                    break;
+                case "s":
+                    return objJson.getString(jsonKey);
+                case "b":
+                    return objJson.getBoolean(jsonKey);
+                case "n":
+                    return objJson.getLong(jsonKey);
+                case "a":
+                    objJson = objJson.getJSONArray(jsonKey).getJSONObject(index);
+            }
+        }
+        return null;
     }
 }

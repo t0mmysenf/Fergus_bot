@@ -1,10 +1,23 @@
 [
   {
     "stationLink": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=teatime.fm",
-    "stationName": "teatime"
+    "stationName": "teatime",
+    "titleExpr": "data:>o;title:>s",
+    "artistExpr": "data:>o;artist:>s",
+    "remixExpr": "data:>o;remix:>s"
   },
   {
     "stationLink": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=coretime.fm",
-    "stationName": "coretime"
+    "stationName": "coretime",
+    "titleExpr": "data:>o;title:>s",
+    "artistExpr": "data:>o;artist:>s",
+    "remixExpr": "data:>o;remix:>s"
+  },
+  {
+    "stationLink": "https://iris-bob.loverad.io/flow.json?station=347&offset=1&count=1",
+    "stationName": "radio bob",
+    "titleExpr": "result:>o;entry:>a;song:>o;entry:>a;title:>s",
+    "artistExpr": "result:>o;entry:>a;song:>o;entry:>a;artist:>o;entry:>a;name:>s",
+    "remixExpr": ""
   }
 ]
